@@ -113,7 +113,7 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
         LayoutInflater lf = LayoutInflater.from(v.getContext());
         draw = lf.inflate(R.layout.drawlayout, null);
         ((ViewGroup)v).addView(draw);
-        draw.setVisibility(View.GONE);
+        //draw.setVisibility(View.GONE);
         dv = (DrawView) draw.findViewById(R.id.draw);
         draw_cancel = (ImageButton) draw.findViewById(R.id.draw_cancel);
         draw_ok = (ImageButton) draw.findViewById(R.id.draw_ok);
@@ -129,6 +129,7 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
         finish.setOnClickListener(this);
 
         draw_more.setVisibility(View.GONE);
+        setDrawVisibility(View.GONE);
         if (name == null) {
             play_draw.setVisibility(View.GONE);
             mPlayer.setPlayWhenReady(true);
@@ -138,6 +139,20 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
         }
 
         new Thread(this).start();
+    }
+
+    public void setDrawVisibility(int i)
+    {
+        draw_cancel.setVisibility(i);
+        draw_ok.setVisibility(i);
+
+        if (i==View.VISIBLE)
+        {
+            dv.setTouchable(true);
+        }else
+        {
+            dv.setTouchable(false);
+        }
     }
 
     public int getWidth()
@@ -340,7 +355,8 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
             removeListener();
             play_more.setVisibility(View.VISIBLE);
             play_draw.setVisibility(View.GONE);
-            draw.setVisibility(View.GONE);
+            //draw.setVisibility(View.GONE);
+            setDrawVisibility(View.GONE);
             draw_more.setVisibility(View.VISIBLE);
             name=null;
             synced=false;
@@ -446,9 +462,10 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
                 }.start();
                 break;
             case R.id.draw_ok:
-                draw.setVisibility(View.GONE);
-                draw_cancel.setVisibility(View.GONE);
-                draw_ok.setVisibility(View.GONE);
+                //draw.setVisibility(View.GONE);
+                setDrawVisibility(View.GONE);
+                //draw_cancel.setVisibility(View.GONE);
+                //draw_ok.setVisibility(View.GONE);
                 play_draw.setVisibility(View.VISIBLE);
                 //play_more.setVisibility(View.VISIBLE);
                 break;
@@ -466,10 +483,11 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
                 break;
             case R.id.play_draw:
                 play_draw.setVisibility(View.GONE);
-                draw.setVisibility(View.VISIBLE);
+                //draw.setVisibility(View.VISIBLE);
+                setDrawVisibility(View.VISIBLE);
                 play_more.setVisibility(View.GONE);
-                draw_cancel.setVisibility(View.VISIBLE);
-                draw_ok.setVisibility(View.VISIBLE);
+                //draw_cancel.setVisibility(View.VISIBLE);
+                //draw_ok.setVisibility(View.VISIBLE);
                 break;
             default:
         }

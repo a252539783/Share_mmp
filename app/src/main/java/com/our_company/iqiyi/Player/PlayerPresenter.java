@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.google.android.exoplayer2.DefaultRenderersFactory;
@@ -44,6 +45,8 @@ import com.our_company.iqiyi.Remote.Communicate.MyEngineEventHandler;
 import com.our_company.iqiyi.Remote.Communicate.WorkerThread;
 import com.our_company.iqiyi.Remote.RemoteUtil;
 
+import java.lang.reflect.Field;
+
 import xiyou.mobile.User;
 
 /**
@@ -51,6 +54,21 @@ import xiyou.mobile.User;
  */
 
 public class PlayerPresenter implements PlaybackControlView.VisibilityListener,View.OnClickListener,Runnable,Player.EventListener,AGEventHandler {
+    private static Field sController,sNext,sPrevious;
+    static
+    {
+        try {
+            sController=SimpleExoPlayerView.class.getDeclaredField("controller");
+            sNext=PlaybackControlView.class.getDeclaredField("nextButton");
+            sPrevious=PlaybackControlView.class.getDeclaredField("previousButton");
+            sController.setAccessible(true);
+            sNext.setAccessible(true);
+            sPrevious.setAccessible(true);
+        } catch (NoSuchFieldException e) {
+            Log.e("xx","-------------"+e.toString());
+        }
+    }
+
     private MDialog mdialog = null;
     private SimpleExoPlayerView mView;
     private SimpleExoPlayer mPlayer;
@@ -102,6 +120,7 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
         mPlayer= ExoPlayerFactory.newSimpleInstance(new DefaultRenderersFactory(v.getContext()),mTracker);
         mView.setPlayer(mPlayer);
         mView.setControllerVisibilityListener(this);
+        initSuper(this);
 
         mDataFactory=new DefaultDataSourceFactory(v.getContext(),
                 Util.getUserAgent(v.getContext(), "Share"), BANDWIDTH_METER);
@@ -731,6 +750,17 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
                     break;
             }
 
+        }
+    }
+
+    private static void initSuper(PlayerPresenter pp)
+    {
+        try {
+            Object controller= sController.get(pp.mView);
+            ((View)sNext.get(controller)).setLayoutParams(new LinearLayout.LayoutParams(0,0));
+            ((View)sPrevious.get(controller)).setLayoutParams(new LinearLayout.LayoutParams(0,0));
+        } catch (IllegalAccessException e) {
+            Log.e("xx","----------"+e.toString());
         }
     }
 }

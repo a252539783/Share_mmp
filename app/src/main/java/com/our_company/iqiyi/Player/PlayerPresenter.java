@@ -270,7 +270,7 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
                         firstWait=true;
                         if (!mBandSync)
                         {
-                            if (Math.abs(position-mPlayer.getCurrentPosition())>1000)
+                            if (!mPlayer.getPlayWhenReady()||Math.abs(position-mPlayer.getCurrentPosition())>1000)
                             {
                                 try {
                                     mPlayer.seekTo(position);
@@ -572,6 +572,10 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
                             {
                                 //暂停
                                 User.get().startpause(name);
+                            }else
+                            {
+                                //播放
+                                User.get().syncSeek((int)mPlayer.getCurrentPosition(),name);
                             }
                         }
                     }
@@ -623,34 +627,6 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
                 }
             }
         }
-
-//        if (!isController&&!firstWait)
-//        {
-//            if (i==Player.STATE_READY) {
-//                new Thread() {
-//                    @Override
-//                    public void run() {
-//                        super.run();
-//                        User.get().startpause(name);
-//                    }
-//                }.start();
-//            }
-//            return;
-//        }
-//
-//                        isPlay=b;
-//                if (!performPlay&&name!=null) {
-//                    new Thread() {
-//                        @Override
-//                        public void run() {
-//                            super.run();
-//                            User.get().startpause(name);
-//                        }
-//                    }.start();
-//                }else
-//                {
-//                    performPlay=false;
-//                }
     }
 
     @Override

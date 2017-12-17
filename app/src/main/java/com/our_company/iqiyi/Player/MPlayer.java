@@ -73,13 +73,13 @@ public class MPlayer extends JZVideoPlayerStandard implements Runnable,AGEventHa
 
     public MPlayer(Context context) {
         super(context);
-        mdialog = new MDialog(context, this);
+        //mdialog = new MDialog(context, this);
         Log.e("xx","init");
     }
 
     public MPlayer(Context context, AttributeSet attrs) {
         super(context, attrs);
-        mdialog = new MDialog(context, this);
+        //mdialog = new MDialog(context, this);
         Log.e("xx","init");
     }
 

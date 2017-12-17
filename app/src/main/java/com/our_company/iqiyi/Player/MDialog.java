@@ -33,7 +33,7 @@ import xiyou.mobile.User;
 
 public class MDialog extends Dialog {
 
-    private MPlayer cv;
+    private PlayerPresenter cv;
     private ViewPager vp;
     private TextView title1,title2;
     private static User.OnPermitSyncListener syncl=null;
@@ -43,7 +43,7 @@ public class MDialog extends Dialog {
 
     private H mh=new H();
 
-    public MDialog(Context context, MPlayer v) {
+    public MDialog(Context context, PlayerPresenter v) {
         super(context, R.style.MDialog);
         this.cv=v;
         WindowManager.LayoutParams lp=getWindow().getAttributes();

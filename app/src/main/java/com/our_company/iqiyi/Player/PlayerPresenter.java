@@ -32,6 +32,7 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.ui.PlaybackControlView;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
+import com.google.android.exoplayer2.ui.TimeBar;
 import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
@@ -44,6 +45,7 @@ import com.our_company.iqiyi.Remote.Communicate.EngineConfig;
 import com.our_company.iqiyi.Remote.Communicate.MyEngineEventHandler;
 import com.our_company.iqiyi.Remote.Communicate.WorkerThread;
 import com.our_company.iqiyi.Remote.RemoteUtil;
+import com.our_company.iqiyi.Util.Rf;
 
 import java.lang.reflect.Field;
 
@@ -53,17 +55,23 @@ import xiyou.mobile.User;
  * Created by Administrator on 2017/12/15.
  */
 
-public class PlayerPresenter implements PlaybackControlView.VisibilityListener,View.OnClickListener,Runnable,Player.EventListener,AGEventHandler {
-    private static Field sController,sNext,sPrevious;
+public class PlayerPresenter implements PlaybackControlView.VisibilityListener,View.OnClickListener,Runnable,Player.EventListener,AGEventHandler,TimeBar.OnScrubListener {
+    private static Field sController,sNext,sPrevious,sTimebar,sForward,sRewind;
     static
     {
         try {
             sController=SimpleExoPlayerView.class.getDeclaredField("controller");
             sNext=PlaybackControlView.class.getDeclaredField("nextButton");
             sPrevious=PlaybackControlView.class.getDeclaredField("previousButton");
+            sTimebar=PlaybackControlView.class.getDeclaredField("timeBar");
+            sForward=PlaybackControlView.class.getDeclaredField("fastForwardButton");
+            sRewind=PlaybackControlView.class.getDeclaredField("rewindButton");
             sController.setAccessible(true);
             sNext.setAccessible(true);
             sPrevious.setAccessible(true);
+            sRewind.setAccessible(true);
+            sTimebar.setAccessible(true);
+            sForward.setAccessible(true);
         } catch (NoSuchFieldException e) {
             Log.e("xx","-------------"+e.toString());
         }
@@ -81,6 +89,9 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
     private View  draw;
     public DrawView dv;
     private ImageButton draw_cancel, draw_ok, draw_more,play_more, play_draw,finish;
+    private View fastForward,rewind;
+    private TimeBar timebar;
+
     private volatile boolean mBandSync=false;
 
     private boolean isController=false,firstWait=false,mLoaded=false;
@@ -318,10 +329,6 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
 
                                 }
                             }
-                        }else
-                        {
-
-
                         }
 
                     }
@@ -463,6 +470,11 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
 
     @Override
     public void onClick(View v) {
+        if (v==fastForward||v==rewind)
+        {
+            mBandSync=true;
+        }
+
         switch (v.getId())
         {
             case R.id.back_pl2:
@@ -683,7 +695,6 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
 
     @Override
     public void onPositionDiscontinuity(int i) {
-
     }
 
     @Override
@@ -693,7 +704,26 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
 
     @Override
     public void onSeekProcessed() {
+        if (mBandSync)
+        {
+            mBandSync=false;
+            User.get().syncSeek((int)mPlayer.getCurrentPosition(),name);
+        }
+    }
 
+    @Override
+    public void onScrubStart(TimeBar timeBar, long l) {
+
+    }
+
+    @Override
+    public void onScrubMove(TimeBar timeBar, long l) {
+
+    }
+
+    @Override
+    public void onScrubStop(TimeBar timeBar, long l, boolean b) {
+        mBandSync=true;
     }
 
     class H extends Handler
@@ -759,8 +789,32 @@ public class PlayerPresenter implements PlaybackControlView.VisibilityListener,V
             Object controller= sController.get(pp.mView);
             ((View)sNext.get(controller)).setLayoutParams(new LinearLayout.LayoutParams(0,0));
             ((View)sPrevious.get(controller)).setLayoutParams(new LinearLayout.LayoutParams(0,0));
+
+            pp.fastForward=(View)sForward.get(controller);
+            pp.rewind=(View)sRewind.get(controller);
+            pp.timebar=(TimeBar) sTimebar.get(controller);
+
+            pp.fastForward.setOnClickListener(new ClickListenerStub(pp,Rf.getOnClickListener(pp.fastForward)));
+            pp.rewind.setOnClickListener(new ClickListenerStub(pp,Rf.getOnClickListener(pp.rewind)));
+            pp.timebar.addListener(pp);
         } catch (IllegalAccessException e) {
             Log.e("xx","----------"+e.toString());
+        }
+    }
+
+    private static class ClickListenerStub implements View.OnClickListener
+    {
+        View.OnClickListener before,after;
+        ClickListenerStub(View.OnClickListener b, View.OnClickListener a)
+        {
+            before=b;
+            after=a;
+        }
+
+        @Override
+        public void onClick(View v) {
+            before.onClick(v);
+            after.onClick(v);
         }
     }
 }
